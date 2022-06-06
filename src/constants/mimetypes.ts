@@ -1,0 +1,5 @@
+export const PNG = "image/png"
+export const JPEG = "image/jpeg"
+export const WEBP = "image/webp"
+export const SVG = "image/svg+xml"
+export const GIF = "image/gif"

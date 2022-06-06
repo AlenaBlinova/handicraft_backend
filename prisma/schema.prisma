@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id Int @id @default(autoincrement())
+
+  email    String  @unique
+  username String  @unique
+  password String
+  role     Role    @default(USER)
+  phone    String?
+
+  emailConfirmed        DateTime?
+  emailConfirmationCode String?
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  orders Order[]
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  title String
+
+  thumbnail Image? @relation(fields: [thumbnailId], references: [id])
+  toys      Toy[]
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  thumbnailId String?
+}
+
+model Toy {
+  id          Int    @id @default(autoincrement())
+  title       String
+  description String
+  price       Int
+
+  thumbnail   Image?  @relation(fields: [thumbnailId], references: [id])
+  thumbnailId String?
+
+  inOrders ToyToOrder[]
+  category Category     @relation(fields: [categoryId], references: [id])
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  categoryId Int
+}
+
+model ToyToOrder {
+  toy     Toy   @relation(fields: [toyId], references: [id], onDelete: Cascade)
+  toyId   Int
+  order   Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId Int
+
+  count Int @default(1)
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@id([toyId, orderId])
+}
+
+enum OrderStatus {
+  IN_PROCESSING
+  MANUFACTURING
+  DONE
+  CANCELED
+}
+
+model Order {
+  id Int @id @default(autoincrement())
+
+  phone      String?
+  name       String?
+  status     OrderStatus @default(IN_PROCESSING)
+  totalPrice Int
+
+  user   User? @relation(fields: [userId], references: [id])
+  userId Int?
+
+  toys ToyToOrder[]
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+model Image {
+  id       String @id @default(cuid())
+  filename String @unique
+  filepath String
+  mimetype String
+  size     Int
+
+  toys       Toy[]
+  categories Category[]
+}
